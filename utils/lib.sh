@@ -67,6 +67,9 @@ exportResourceInfo() {
         poolworkdir=${HOME}
     fi
     export poolworkdir=${poolworkdir}
+
+    # FIXME: Won't always work
+    export internalIp=$(ssh $controller hostname -I)
 }
 
 

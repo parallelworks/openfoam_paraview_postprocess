@@ -20,6 +20,8 @@
     <section name='advanced_options_other' type='section' title='Advanced Options' expanded='false'>
         <param name='_pw_controller' label='Controller host' type='text' value='pw.conf' help='Use hostname@ip or a proxy like PoolName.clusters.pw. Use pw.conf to get PoolName from pw.conf' width='50%_none'>
         </param>
+        <param name="_pw_use_dex" type="boolean" truevalue="Yes" falsevalue="No" checked="True" label="Display Results in Design Explorer?" help='Select Yes to transfer the images and metrics to PW and display them using Design Explorer' width="25%_none" optional='true' float="right">
+        </param>
     </section>
   </inputs>
   <outputs>

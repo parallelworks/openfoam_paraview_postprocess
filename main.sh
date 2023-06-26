@@ -78,6 +78,10 @@ for case_foam in ${cases_foam}; do
     echo "export DISPLAY=:0" >> ${sbatch_sh}
     echo "${load_paraview}" | sed "s|___| |g" | tr ';' '\n' >> ${sbatch_sh}
     echo "pvpython ${pvpython_script} ${case_foam}"  >> ${sbatch_sh}
+    if [[ ${use_dex} == "True" ]]; then
+        rsync_cmd="rsync -avzq -e \"ssh -J ${internalIp}\" --include='*.csv' --include='*.json' --include='*.png' --exclude='*'  ./ usercontainer:${PWD}/${case_dir}"
+        echo ${rync_cmd} >>  ${sbatch_sh}
+    fi
     cat ${sbatch_sh}
     scp ${sbatch_sh} ${controller}:${jobdir}/${case_dir}
 done
