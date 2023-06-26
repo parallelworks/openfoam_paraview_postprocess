@@ -75,6 +75,7 @@ for case_foam in ${cases_foam}; do
     if [[ "${pooltype}" == "slurmshv2" ]]; then
         echo "bash ${poolworkdir}/pw/.pw/remote.sh" >> ${sbatch_sh}
     fi
+    echo "export DISPLAY=:0" >> ${sbatch_sh}
     echo "${load_paraview}" | sed "s|___| |g" | tr ';' '\n' >> ${sbatch_sh}
     echo "pvpython ${pvpython_script} ${case_foam}"  >> ${sbatch_sh}
     cat ${sbatch_sh}
