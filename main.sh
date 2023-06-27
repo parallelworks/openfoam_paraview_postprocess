@@ -115,7 +115,7 @@ while true; do
             exit 1
         fi
         echo "  All jobs are completed"
-        exit 0
+        break
     fi
 
     for sj in ${submitted_jobs}; do
@@ -135,3 +135,7 @@ while true; do
     done
     sleep 60
 done
+
+if [[ ${use_dex} == "True" ]]; then
+    python3 dex.py
+fi
