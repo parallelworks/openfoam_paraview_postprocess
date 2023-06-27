@@ -139,3 +139,4 @@ done
 if [[ ${use_dex} == "True" ]]; then
     python3 dex.py
 fi
+
