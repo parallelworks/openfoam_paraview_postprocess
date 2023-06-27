@@ -80,7 +80,7 @@ for case_foam in ${cases_foam}; do
     echo "pvpython ${pvpython_script} ${case_foam}"  >> ${sbatch_sh}
     if [[ ${use_dex} == "True" ]]; then
         rsync_cmd="rsync -avzq -e \"ssh -J ${internalIp}\" --include='*.csv' --include='*.json' --include='*.png' --exclude='*'  ./ usercontainer:${PWD}/${case_dir}"
-        echo ${rync_cmd} >>  ${sbatch_sh}
+        echo ${rsync_cmd} >>  ${sbatch_sh}
     fi
     cat ${sbatch_sh}
     scp ${sbatch_sh} ${controller}:${jobdir}/${case_dir}
