@@ -64,7 +64,7 @@ for case_foam in ${cases_foam}; do
     case_dir=$(dirname ${case_foam} | sed "s|${jobdir}||g")
     # Case directory in user container
     mkdir -p ${PWD}/${case_dir}
-    sbatch_sh=${PWD}/${case_dir}/sbatch.sh
+    sbatch_sh=${PWD}/${case_dir}/sbatch_paraview.sh
     chdir=${jobdir}/${case_dir}
     # Create submit script
     cp slurm_directives.sh ${sbatch_sh}
@@ -91,7 +91,7 @@ echo; echo "LAUNCHING JOBS"
 for case_foam in ${cases_foam}; do
     echo "  OpenFOAM results: ${case_foam}"
     case_dir=$(dirname ${case_foam} | sed "s|${jobdir}||g")
-    remote_sbatch_sh=${jobdir}/${case_dir}/sbatch.sh
+    remote_sbatch_sh=${jobdir}/${case_dir}/sbatch_paraview.sh
     echo "  Running:"
     echo "    $sshcmd \"bash --login -c \\"sbatch ${remote_sbatch_sh}\\"\""
     slurm_job=$($sshcmd "bash --login -c \"sbatch ${remote_sbatch_sh}\"" | tail -1 | awk -F ' ' '{print $4}')
