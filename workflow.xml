@@ -2,7 +2,7 @@
   <command interpreter='bash'>main.sh</command>
   <inputs>
    <section name='paraview' type='section' title='Paraview' expanded='true'>
-        <param name='script' label='Path to the Python Script' type='text' value='__RESOURCE_WORKDIR__/pw/openfoam/cyclone-esi-template/pv_postprocess.py' help='See workflow description for more information on how to prepare this script' width='100%_none'>
+        <param name='script' label='Path to the Python Script' type='text' value='/home/atnorth/pw/openfoam/cyclone-esi-template/pv_postprocess.py' help='See workflow description for more information on how to prepare this script' width='100%_none'>
         </param>
         <param name='jobdir' label='OpenFOAM Job Directory' type='text' value='/scratch/__USER__/pw/jobs/__JOB_NUMBER__' help='This directory is used to search for case.foam files with command [find path/to/dir -maxdepth 2 -name case.foam]' width='100%_none'>
         </param>
