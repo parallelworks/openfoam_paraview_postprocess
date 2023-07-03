@@ -2,27 +2,21 @@
   <command interpreter='bash'>main.sh</command>
   <inputs>
    <section name='paraview' type='section' title='Paraview' expanded='true'>
-        <param name='_pw_pvpython_script' label='Path to the Python Script' type='text' value='__RESOURCE_WORKDIR__/pw/openfoam/cyclone-esi-template/pv_postprocess.py' help='See workflow description for more information on how to prepare this script' width='100%_none'>
+        <param name='script' label='Path to the Python Script' type='text' value='__RESOURCE_WORKDIR__/pw/openfoam/cyclone-esi-template/pv_postprocess.py' help='See workflow description for more information on how to prepare this script' width='100%_none'>
         </param>
-        <param name='_pw_jobdir' label='OpenFOAM Job Directory' type='text' value='/scratch/__USER__/pw/jobs/__JOB_NUMBER__' help='This directory is used to search for case.foam files with command [find path/to/dir -maxdepth 2 -name case.foam]' width='100%_none'>
+        <param name='jobdir' label='OpenFOAM Job Directory' type='text' value='/scratch/__USER__/pw/jobs/__JOB_NUMBER__' help='This directory is used to search for case.foam files with command [find path/to/dir -maxdepth 2 -name case.foam]' width='100%_none'>
         </param>
-        <param name='_pw_load_paraview' label='Command to Load Paraview' type='text' value='source /home/atnorth/pw/bootstrap/ParaView-5.6.0-MPI-Linux-64bit/load.sh' help='E.g.: module load, spack load, source, export PATH=, etc' width='100%_none'>
+        <param name='load' label='Command to Load Paraview' type='text' value='source /home/atnorth/pw/bootstrap/ParaView-5.6.0-MPI-Linux-64bit/load.sh' help='E.g.: module load, spack load, source, export PATH=, etc' width='100%_none'>
         </param>
-   </section>
-    <section name='pvhost' type='section' title='Slurm Configuration' expanded='true'>
-        <param name='_pw_pvhost_jobschedulertype' label='Job Scheduler Type' type='hidden' value='SLURM' width='50%_none'>
-        </param>
-        <param name='_pw__pvhost__sch__dd_partition_e_' label='Slurm Partition' type='text' help='Name of the SLURM partition to run the Paraview Python script' value='vnc' width='50%_none'>
-        </param>
-        <param name='_pw_pvhost_scheduler_directives' label='Scheduler Directives' type='text' help='e.g. --mem=1000;--gpus-per-node=1 - Use the semicolon character ; to separate parameters. Do not include the SBATCH keyword.' value='' width='100%_none'>
+        <param name="use_dex" type="boolean" truevalue="Yes" falsevalue="No" checked="True" label="Display Results in Design Explorer?" help='Select Yes to transfer the images and metrics to PW and display them using Design Explorer' width="25%_none" optional='true' float="right">
         </param>
     </section>
-    <section name='advanced_options_other' type='section' title='Advanced Options' expanded='false'>
-        <param name='_pw_controller' label='Controller host' type='text' value='pw.conf' help='Use hostname@ip or a proxy like PoolName.clusters.pw. Use pw.conf to get PoolName from pw.conf' width='50%_none'>
-        </param>
-        <param name="_pw_use_dex" type="boolean" truevalue="Yes" falsevalue="No" checked="True" label="Display Results in Design Explorer?" help='Select Yes to transfer the images and metrics to PW and display them using Design Explorer' width="25%_none" optional='true' float="right">
-        </param>
-    </section>
+    <section name='pwrl_pvhost' type='section' title='Paraview Executor' expanded='true'>
+      <param name='resource' type='computeResource' label='Service host' hideUserWorkspace='true' help='Resource to host the service'></param>
+      <param name='jobschedulertype' label='Select Controller, SLURM Partition or PBS Queue' type='hidden' value='SLURM' width='100%_none'></param>
+      <param name='_sch__dd_partition_e_' label='Slurm Partition' type='text' help='Name of the SLURM partition to run the OpenFOAM cases' value='vnc' width='50%_none'></param>
+      <param name='scheduler_directives' label='Scheduler Directives' type='text' help='e.g. --mem=1000;--gpus-per-node=1 - Use the semicolon character ; to separate parameters. Do not include the SBATCH keyword.' value='' width='100%_none'></param>
+  </section>
   </inputs>
   <outputs>
   </outputs>
