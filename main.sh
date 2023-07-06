@@ -1,56 +1,48 @@
 #!/bin/bash
-set -x
-source utils/lib.sh
-export job_number=$(basename ${PWD})
+date
+# Resource label
+export rlabel=pvhost
+export job_dir=$(pwd | rev | cut -d'/' -f1-2 | rev)
+export job_id=$(echo ${job_dir} | tr '/' '-')
 
-echo
-echo "JOB NUMBER:  ${job_number}"
-echo "USER:        ${PW_USER}"
-echo "DATE:        $(date)"
-echo
+echo; echo "LOADING AND PREPARING INPUTS"
+# Overwrite input form and resource definition page defaults
+sed -i "s|__USER__|${PW_USER}|g" inputs.sh
+sed -i "s|__USER__|${PW_USER}|g" inputs.json
 
-wfargs="$(echo $@ | sed "s|__JOB_NUMBER__|${job_number}|g" | sed "s|__USER__|${PW_USER}|g") --job_number ${job_number}"
-parseArgs ${wfargs}
+# Load inputs
+source /etc/profile.d/parallelworks.sh
+source /etc/profile.d/parallelworks-env.sh
+source /pw/.miniconda3/etc/profile.d/conda.sh
+conda activate
 
-# Sets poolname, controller, pooltype and poolworkdir
-exportResourceInfo
-echo "Resource name:    ${poolname}"
-echo "Controller:       ${controller}"
-echo "Resource type:    ${pooltype}"
-echo "Resource workdir: ${poolworkdir}"
-echo
+if [ -f "input_form_resource_wrapper.py" ]; then
+    python input_form_resource_wrapper.py
+else
+    python /pw/input_form_resource_wrapper.py
+fi
 
-wfargs="$(echo ${wfargs} | sed "s|__RESOURCE_WORKDIR__|${poolworkdir}|g")"
-wfargs="$(echo ${wfargs} | sed "s|--_pw_controller pw.conf|--_pw_controller ${controller}|g")"
+source inputs.sh
+source resources/${rlabel}/inputs.sh
 
-echo "$0 $wfargs"; echo
-parseArgs ${wfargs}
+batch_header=resources/${rlabel}/batch_header.sh
 
-echo; echo "CREATING GENERAL SLURM HEADER"
-getBatchScriptHeader pvhost > slurm_directives.sh
-chmod +x slurm_directives.sh
-cat slurm_directives.sh
-
-echo; echo "PREPARING KILL SCRIPT TO CLEAN JOB"
-sed -i "s|__controller__|${controller}|g" kill.sh
-sed -i "s|__job_number__|${job_number}|g" kill.sh
-
-sshcmd="ssh -o StrictHostKeyChecking=no ${controller}"
+sshcmd="ssh -o StrictHostKeyChecking=no ${resource_publicIp}"
 
 echo; echo "CHECKING OPENFOAM JOB DIRECTORY"
-jobdir_exists=$(${sshcmd} "[ -d '${jobdir}' ] && echo 'true' || echo 'false'")
+jobdir_exists=$(${sshcmd} "[ -d '${paraview_jobdir}' ] && echo 'true' || echo 'false'")
 
 if ! [[ "${jobdir_exists}" == "true" ]]; then
-    echo "ERROR: Could find OpenFOAM job directory <${jobdir}> on remote host <${controller}>"
-    echo "       Try: ${sshcmd} ls ${jobdir}"
+    echo "ERROR: Could find OpenFOAM job directory <${paraview_jobdir}> on remote host <${resource_publicIp}>"
+    echo "       Try: ${sshcmd} ls ${paraview_jobdir}"
     exit 1
 fi
 
 echo; echo "LOOKING FOR OPENFOAM RESULTS"
-ssh_find_cmd="${sshcmd} find ${jobdir} -maxdepth 2 -name case.foam"
+ssh_find_cmd="${sshcmd} find ${paraview_jobdir} -maxdepth 2 -name case.foam"
 cases_foam=$(${ssh_find_cmd})
 if [ -z "${cases_foam}" ]; then
-    echo "ERROR: No OpenFOAM results found in directory <${jobdir}> on remote host <${controller}>"
+    echo "ERROR: No OpenFOAM results found in directory <${paraview_jobdir}> on remote host <${resource_publicIp}>"
     echo "       Try command <${ssh_find_cmd}>"
     echo "       Exiting workflow"
     exit 1
@@ -61,37 +53,37 @@ echo ${cases_foam}
 echo; echo "CREATING SLURM WRAPPERS"
 for case_foam in ${cases_foam}; do
     echo "  OpenFOAM results: ${case_foam}"
-    case_dir=$(dirname ${case_foam} | sed "s|${jobdir}||g")
+    case_dir=$(dirname ${case_foam} | sed "s|${paraview_jobdir}||g")
     # Case directory in user container
     mkdir -p ${PWD}/${case_dir}
     sbatch_sh=${PWD}/${case_dir}/sbatch_paraview.sh
-    chdir=${jobdir}/${case_dir}
+    chdir=${paraview_jobdir}/${case_dir}
     # Create submit script
-    cp slurm_directives.sh ${sbatch_sh}
+    cp ${batch_header} ${sbatch_sh}
     echo "#SBATCH -o ${chdir}/pw-${job_number}.out" >> ${sbatch_sh}
     echo "#SBATCH -e ${chdir}/pw-${job_number}.out" >> ${sbatch_sh}
     echo "#SBATCH --chdir=${chdir}" >> ${sbatch_sh}
     echo "cd ${chdir}"              >> ${sbatch_sh}
-    if [[ "${pooltype}" == "slurmshv2" ]]; then
-        echo "bash ${poolworkdir}/pw/.pw/remote.sh" >> ${sbatch_sh}
+    if [[ "${resource_type}" == "slurmshv2" ]]; then
+        echo "bash ${resource_workdir}/pw/.pw/remote.sh" >> ${sbatch_sh}
     fi
     echo "export DISPLAY=:0" >> ${sbatch_sh}
-    echo "${load_paraview}" | sed "s|___| |g" | tr ';' '\n' >> ${sbatch_sh}
-    echo "pvpython ${pvpython_script} ${case_foam}"  >> ${sbatch_sh}
-    if [[ ${use_dex} == "True" ]]; then
+    echo "${paraview_load}" | sed "s|___| |g" | tr ';' '\n' >> ${sbatch_sh}
+    echo "pvpython ${paraview_script} ${case_foam}"  >> ${sbatch_sh}
+    if [[ ${paraview_use_dex} == "True" ]]; then
         rsync_cmd="rsync -avzq -e \"ssh -J ${internalIp}\" --include='*.csv' --include='*.json' --include='*.png' --exclude='*'  ./ usercontainer:${PWD}/${case_dir}"
         echo ${rsync_cmd} >>  ${sbatch_sh}
     fi
     cat ${sbatch_sh}
-    scp ${sbatch_sh} ${controller}:${jobdir}/${case_dir}
+    scp ${sbatch_sh} ${resource_publicIp}:${paraview_jobdir}/${case_dir}
 done
 
 
 echo; echo "LAUNCHING JOBS"
 for case_foam in ${cases_foam}; do
     echo "  OpenFOAM results: ${case_foam}"
-    case_dir=$(dirname ${case_foam} | sed "s|${jobdir}||g")
-    remote_sbatch_sh=${jobdir}/${case_dir}/sbatch_paraview.sh
+    case_dir=$(dirname ${case_foam} | sed "s|${paraview_jobdir}||g")
+    remote_sbatch_sh=${paraview_jobdir}/${case_dir}/sbatch_paraview.sh
     echo "  Running:"
     echo "    $sshcmd \"bash --login -c \\"sbatch ${remote_sbatch_sh}\\"\""
     slurm_job=$($sshcmd "bash --login -c \"sbatch ${remote_sbatch_sh}\"" | tail -1 | awk -F ' ' '{print $4}')
@@ -125,7 +117,7 @@ while true; do
             mv ${sj} ${sj}.completed
             sj_status=$($sshcmd sacct -j ${slurm_job}  --format=state | tail -n1 | tr -d ' ')
             case_dir=$(dirname ${sj} | sed "s|${PWD}/||g")
-            scp ${controller}: ${controller}:${jobdir}/${case_dir}/pw-${job_number}.out ${case_dir}
+            scp ${resource_publicIp}:${paraview_jobdir}/${case_dir}/pw-${job_number}.out ${case_dir}
         fi
         echo "  Slurm job ${slurm_job} status is ${sj_status}"
         if [[ "${sj_status}" == "FAILED" ]]; then
@@ -136,7 +128,7 @@ while true; do
     sleep 60
 done
 
-if [[ ${use_dex} == "True" ]]; then
+if [[ ${paraview_use_dex} == "True" ]]; then
     python3 dex.py
 fi
 
