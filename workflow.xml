@@ -4,7 +4,7 @@
    <section name='paraview' type='section' title='Paraview' expanded='true'>
         <param name='script' label='Path to the Python Script' type='text' value='/home/atnorth/pw/openfoam/cyclone-esi-template/pv_postprocess.py' help='See workflow description for more information on how to prepare this script' width='100%_none'>
         </param>
-        <param name='jobdir' label='OpenFOAM Job Directory' type='text' value='/scratch/__USER__/pw/jobs/__JOB_NUMBER__' help='This directory is used to search for case.foam files with command [find path/to/dir -maxdepth 2 -name case.foam]' width='100%_none'>
+        <param name='jobdir' label='OpenFOAM Job Directory' type='text' value='/scratch/__USER__/__WORKFLOW_NAME__/__JOB_NUMBER__' help='This directory is used to search for case.foam files with command [find path/to/dir -maxdepth 2 -name case.foam]' width='100%_none'>
         </param>
         <param name='load' label='Command to Load Paraview' type='text' value='source /home/atnorth/pw/bootstrap/ParaView-5.6.0-MPI-Linux-64bit/load.sh' help='E.g.: module load, spack load, source, export PATH=, etc' width='100%_none'>
         </param>
