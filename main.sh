@@ -70,7 +70,7 @@ for case_foam in ${cases_foam}; do
     echo "export DISPLAY=:0" >> ${sbatch_sh}
     echo "${paraview_load}" | sed "s|___| |g" | tr ';' '\n' >> ${sbatch_sh}
     echo "pvpython ${paraview_script} ${case_foam}"  >> ${sbatch_sh}
-    if [[ ${paraview_use_dex} == "True" ]]; then
+    if [[ ${paraview_use_dex} == "true" ]]; then
         rsync_cmd="rsync -avzq -e \"ssh -J ${internalIp}\" --include='*.csv' --include='*.json' --include='*.png' --exclude='*'  ./ usercontainer:${PWD}/${case_dir}"
         echo ${rsync_cmd} >>  ${sbatch_sh}
     fi
@@ -128,7 +128,7 @@ while true; do
     sleep 60
 done
 
-if [[ ${paraview_use_dex} == "True" ]]; then
+if [[ ${paraview_use_dex} == "true" ]]; then
     python3 dex.py
 fi
 
