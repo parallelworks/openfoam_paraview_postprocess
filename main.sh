@@ -19,7 +19,7 @@ conda activate
 if [ -f "input_form_resource_wrapper.py" ]; then
     python input_form_resource_wrapper.py
 else
-    python /pw/input_form_resource_wrapper.py
+    python /swift-pw-bin/utils/input_form_resource_wrapper.py
 fi
 
 source inputs.sh
